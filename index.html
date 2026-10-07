@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema de préstamos Biblioteca Viva · Molino de Rosas</title>
+<meta name="description" content="Consulta el acervo de la Biblioteca Viva de la Escuela Primaria Molino de Rosas, ubica cada libro en su estante y prepara tu vale de préstamo.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<a class="saltar" href="#contenido">Ir al contenido</a>
+
+<header class="cabecera">
+  <div class="cabecera__fila">
+    <a class="marca" href="#explorar" aria-label="Inicio del Sistema de préstamos">
+      <span class="marca__sup">Biblioteca Viva</span>
+      <span class="marca__nombre">Sistema de préstamos</span>
+    </a>
+    <nav class="menu" aria-label="Secciones">
+      <a href="#explorar" data-vista="explorar">Explorar</a>
+      <a href="#librero" data-vista="librero">El librero</a>
+      <a href="#que-leo" data-vista="que-leo">¿Qué leo hoy?</a>
+      <a href="#mochila" data-vista="mochila">Mi mochila <span class="contador" id="contadorMochila" hidden>0</span></a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <!-- ============ EXPLORAR ============ -->
+  <section class="vista" id="vista-explorar" data-vista="explorar">
+    <div class="portada-hero">
+      <div class="hero__texto">
+        <h1>¿Qué libro quieres llevarte a casa?</h1>
+        <p id="resumenAcervo" class="hero__resumen"></p>
+        <form class="buscador" id="buscador" role="search">
+          <label class="vh" for="q">Buscar en el acervo</label>
+          <input id="q" type="search" autocomplete="off" placeholder="Título, autor, tema o ID (BV-0123)">
+          <button type="button" class="btn btn--icono" id="btnEscanearPublico" hidden title="Escanear la etiqueta con la cámara" aria-label="Escanear la etiqueta con la cámara">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M17 8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </form>
+        <div class="hero__acciones">
+          <button class="btn btn--claro" id="btnSorpresa" type="button">Sorpréndeme con un libro</button>
+          <a class="btn btn--claro" href="#que-leo">Ayúdame a elegir</a>
+        </div>
+      </div>
+      <div class="estante-vivo" aria-label="Algunos libros de nuestra biblioteca">
+        <div class="estante-vivo__libros" id="estanteVivo"></div>
+        <div class="repisa" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="explorar">
+      <aside class="filtros" id="filtros" aria-label="Filtros">
+        <div class="filtros__cab">
+          <h2>Filtrar</h2>
+          <button type="button" class="enlace" id="limpiarFiltros">Quitar filtros</button>
+        </div>
+
+        <fieldset class="grupo-filtro">
+          <legend>Serie de Libros del Rincón</legend>
+          <div class="lomos-filtro" id="filtroSerie"></div>
+        </fieldset>
+
+        <fieldset class="grupo-filtro">
+          <legend>Género</legend>
+          <div class="segmentado" id="filtroGenero">
+            <button type="button" data-v="" aria-pressed="true">Todos</button>
+            <button type="button" data-v="Literario" aria-pressed="false">Literario</button>
+            <button type="button" data-v="Informativo" aria-pressed="false">Informativo</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo-filtro">
+          <legend>Color de la etiqueta</legend>
+          <div class="colores" id="filtroColor"></div>
+        </fieldset>
+
+        <fieldset class="grupo-filtro">
+          <legend>Procedencia</legend>
+          <select id="filtroOrigen"></select>
+        </fieldset>
+
+        <fieldset class="grupo-filtro grupo-filtro--checks">
+          <legend class="vh">Opciones</legend>
+          <label><input type="checkbox" id="soloDisponibles"> Solo disponibles en la biblioteca</label>
+          <label><input type="checkbox" id="soloResena"> Solo con reseña</label>
+          <label><input type="checkbox" id="incluirDocentes"> Incluir revistas y material para docentes</label>
+        </fieldset>
+      </aside>
+
+      <div class="resultados">
+        <div class="resultados__barra">
+          <p id="conteo" aria-live="polite"></p>
+          <label class="orden">Ordenar por
+            <select id="orden">
+              <option value="relevancia">Lo más parecido</option>
+              <option value="titulo">Título (A-Z)</option>
+              <option value="autor">Autor (A-Z)</option>
+              <option value="librero">Lugar en el librero</option>
+              <option value="anio">Más recientes</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn--chico btn--borde" id="btnFiltrosMovil" aria-controls="filtros" aria-expanded="false">Filtros</button>
+        </div>
+        <div class="rejilla" id="rejilla"></div>
+        <div class="mas"><button type="button" class="btn btn--borde" id="btnMas" hidden>Mostrar más libros</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EL LIBRERO ============ -->
+  <section class="vista" id="vista-librero" data-vista="librero" hidden>
+    <div class="encabezado-vista">
+      <h1>El librero</h1>
+      <p>Así está acomodada nuestra biblioteca. Cada rayita es un título y tiene el color de su etiqueta. Toca un entrepaño para ver qué libros viven ahí.</p>
+    </div>
+    <div class="librero" id="libreroEstantes"></div>
+    <section class="entrepano-detalle" id="entrepanoDetalle" aria-live="polite" hidden></section>
+    <div class="leyenda" id="leyendaColores" aria-label="Significado de los colores"></div>
+  </section>
+
+  <!-- ============ ¿QUÉ LEO HOY? ============ -->
+  <section class="vista" id="vista-que-leo" data-vista="que-leo" hidden>
+    <div class="encabezado-vista">
+      <h1>¿Qué leo hoy?</h1>
+      <p>Responde dos preguntas y te proponemos tres libros que sí están en la biblioteca.</p>
+    </div>
+    <div class="asistente">
+      <div class="pregunta">
+        <h2><span class="paso">1</span> ¿En qué grado vas?</h2>
+        <div class="opciones" id="opGrado"></div>
+      </div>
+      <div class="pregunta">
+        <h2><span class="paso">2</span> ¿Qué se te antoja leer?</h2>
+        <div class="opciones opciones--antojos" id="opAntojo"></div>
+      </div>
+      <div class="propuesta" id="propuesta" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ============ MI MOCHILA ============ -->
+  <section class="vista" id="vista-mochila" data-vista="mochila" hidden>
+    <div class="encabezado-vista">
+      <h1>Mi mochila</h1>
+      <p>Guarda aquí los libros que te interesan. Cuando estés listo, crea tu vale y muéstralo al Promotor de Lectura para llevártelos.</p>
+    </div>
+    <div class="mochila">
+      <div class="mochila__lista" id="mochilaLista"></div>
+      <form class="mochila__form" id="formVale">
+        <h2>Mi vale de préstamo</h2>
+        <label>Nombre de quien se lleva el libro
+          <input id="valeNombre" required maxlength="60" autocomplete="name">
+        </label>
+        <label>Grupo
+          <select id="valeGrupo" required></select>
+        </label>
+        <p class="nota" id="valeLimite"></p>
+        <button class="btn btn--primario" type="submit">Crear mi vale</button>
+      </form>
+    </div>
+    <div id="valeZona"></div>
+  </section>
+
+  <!-- ============ MOSTRADOR DEL PROMOTOR ============ -->
+  <section class="vista" id="vista-mostrador" data-vista="mostrador" hidden>
+    <div class="encabezado-vista">
+      <h1>Mostrador del Promotor</h1>
+      <p>Registra salidas y devoluciones. No hace falta dar de alta a nadie: basta con el nombre y el grupo.</p>
+    </div>
+
+    <form class="puerta" id="puerta">
+      <label>Clave del mostrador <input type="password" id="clave" autocomplete="current-password"></label>
+      <button class="btn btn--primario" type="submit">Entrar</button>
+      <p class="nota" id="puertaMsg" role="alert"></p>
+    </form>
+
+    <div class="mostrador" id="panelMostrador" hidden>
+      <nav class="pestanas" role="tablist" aria-label="Secciones del mostrador">
+        <button role="tab" data-p="atender" aria-selected="true">Atender</button>
+        <button role="tab" data-p="activos" aria-selected="false">En préstamo <span class="contador" id="cActivos">0</span></button>
+        <button role="tab" data-p="vencidos" aria-selected="false">Por devolver <span class="contador contador--alerta" id="cVencidos">0</span></button>
+        <button role="tab" data-p="historial" aria-selected="false">Historial</button>
+        <button role="tab" data-p="numeros" aria-selected="false">Números</button>
+        <button role="tab" data-p="respaldo" aria-selected="false">Respaldo</button>
+      </nav>
+
+      <div class="panel-m" data-p="atender">
+        <form class="captura" id="captura">
+          <label class="vh" for="capturaId">ID del libro</label>
+          <input id="capturaId" placeholder="Escanea la etiqueta o escribe el ID (BV-0123)" autocomplete="off" inputmode="text">
+          <button class="btn btn--primario" type="submit">Buscar</button>
+          <button class="btn btn--borde" type="button" id="btnCamaraMostrador" hidden>Usar cámara</button>
+        </form>
+        <p class="nota">Con un lector de código de barras USB basta con escanear: el lector escribe el ID y presiona Enter. Para leer un vale, escanea su código QR o pega su texto aquí.</p>
+        <div id="atencion"></div>
+      </div>
+      <div class="panel-m" data-p="activos" hidden><div id="tablaActivos"></div></div>
+      <div class="panel-m" data-p="vencidos" hidden><div id="tablaVencidos"></div></div>
+      <div class="panel-m" data-p="historial" hidden><div id="tablaHistorial"></div></div>
+      <div class="panel-m" data-p="numeros" hidden><div id="numeros"></div></div>
+      <div class="panel-m" data-p="respaldo" hidden>
+        <div class="respaldo">
+          <p id="estadoSync" class="nota"></p>
+          <div class="respaldo__botones">
+            <button class="btn btn--borde" type="button" id="expCsv">Descargar préstamos (CSV para Excel)</button>
+            <button class="btn btn--borde" type="button" id="expJson">Descargar respaldo (JSON)</button>
+            <label class="btn btn--borde">Restaurar respaldo <input type="file" id="impJson" accept=".json,application/json" hidden></label>
+            <button class="btn btn--borde" type="button" id="btnSync" hidden>Sincronizar con Google Sheets</button>
+            <button class="btn btn--borde" type="button" id="btnSalir">Cerrar el mostrador</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <p><strong>Biblioteca Viva</strong>, <span id="pieEscuela"></span>. Acervo actualizado al 6 de octubre de 2026.</p>
+  <p>Series, logotipos y categorías: Libros del Rincón, SEP. <a href="#mostrador" class="pie__mostrador">Mostrador del Promotor</a></p>
+</footer>
+
+<!-- Ficha del libro -->
+<dialog class="ficha" id="ficha" aria-labelledby="fichaTitulo">
+  <div class="ficha__contenido" id="fichaContenido"></div>
+</dialog>
+
+<!-- Escáner con cámara -->
+<dialog class="escaner" id="escaner" aria-label="Escanear con la cámara">
+  <video id="video" playsinline muted></video>
+  <p>Acerca la etiqueta o el código QR del vale a la cámara.</p>
+  <button class="btn btn--claro" type="button" id="cerrarEscaner">Cancelar</button>
+</dialog>
+
+<div class="aviso-flotante" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="datos/acervo.js"></script>
+<script src="datos/estantes.js"></script>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
