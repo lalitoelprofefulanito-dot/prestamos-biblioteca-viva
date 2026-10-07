@@ -535,8 +535,8 @@
       q.addData(texto, "Byte"); q.make(); return q.createSvgTag(4, 8);
     } catch (e) { return ""; }
   }
-  function crearVale(ids, nombre, grupo) {
-    var folio = "V" + Date.now().toString(36).toUpperCase().slice(-6);
+  function crearVale(ids, nombre, grupo, folioDado, autoImprimir) {
+    var folio = folioDado || ("V" + Date.now().toString(36).toUpperCase().slice(-6));
     var hoy = hoyISO(), vence = sumarDias(hoy, CFG.diasPrestamo);
     var carga = ["BV1", ids.join(","), nombre.replace(/\|/g, " "), grupo, folio].join("|");
     $("#valeZona").innerHTML = '<div class="vale"><div class="vale__tarjeta">' +
@@ -555,9 +555,38 @@
       '<span class="vale__sello" aria-hidden="true">Biblioteca Viva</span></div>' +
       '<div class="vale__acciones"><button type="button" class="btn btn--primario" id="imprimirVale">Imprimir o guardar en PDF</button>' +
       '<button type="button" class="btn btn--borde" id="vaciarMochila">Vaciar mi mochila</button></div></div>';
-    $("#imprimirVale").addEventListener("click", function () { window.print(); });
+    $("#imprimirVale").addEventListener("click", function () { imprimirVale(carga); });
+    if (autoImprimir) imprimirCuandoCargue();
     $("#vaciarMochila").addEventListener("click", function () { MOCHILA = []; guardar("bv.mochila", MOCHILA); contadorMochila(); pintarMochila(); aviso("Mochila vacía"); });
     $("#valeZona").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Dentro de Google Sites (iframe) el navegador bloquea window.print():
+  // el vale se abre en una pestaña propia y ahí se imprime.
+  function enMarco() { try { return window.self !== window.top; } catch (e) { return true; } }
+  function imprimirVale(carga) {
+    if (!enMarco()) { window.print(); return; }
+    var url = location.href.split("#")[0] + "#vale=" + encodeURIComponent(carga);
+    var w = window.open(url, "_blank");
+    if (w) aviso("Tu vale se abrió en una pestaña nueva para imprimirlo.");
+    else aviso("El navegador bloqueó la pestaña nueva. Permite ventanas emergentes para este sitio.");
+  }
+  function imprimirCuandoCargue() {
+    var imgs = $$("#valeZona img"), listo = false;
+    function ir() { if (listo) return; listo = true; setTimeout(function () { window.print(); }, 250); }
+    var pendientes = imgs.filter(function (i) { return !i.complete; });
+    if (!pendientes.length) { ir(); return; }
+    var n = pendientes.length;
+    pendientes.forEach(function (i) { i.addEventListener("load", fin); i.addEventListener("error", fin); });
+    function fin() { if (--n <= 0) ir(); }
+    setTimeout(ir, 3000);
+  }
+  function abrirValeDesdeEnlace(carga) {
+    var p = carga.split("|");
+    var ids = (p[1] || "").split(",").filter(function (id) { return POR_ID[id]; });
+    if (p[0] !== "BV1" || !ids.length) { mostrarVista("explorar"); aviso("Ese enlace de vale no es válido."); return; }
+    mostrarVista("mochila");
+    crearVale(ids, p[2] || "", p[3] || "", p[4] || "", true);
   }
 
   /* ---------------- Escáner con cámara ---------------- */
@@ -831,6 +860,8 @@
   }
   function ruta() {
     var h = decodeURIComponent(location.hash.slice(1));
+    var mv = h.match(/^vale=(.+)$/);
+    if (mv) { cerrarFicha(); abrirValeDesdeEnlace(mv[1]); return; }
     var m = h.match(/^libro=(.+)$/);
     if (m) {
       if (!vistaActual || $("#vista-" + vistaActual).hidden) mostrarVista(vistaPrevia);
